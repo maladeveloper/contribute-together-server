@@ -1,0 +1,4 @@
+db_credentials.py
+.pylintrc
+__pycache__/
+enviro/
