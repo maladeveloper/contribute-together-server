@@ -1,4 +1,5 @@
 from pathlib import Path
+import sys
 import os
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -15,7 +16,7 @@ SECRET_KEY = os.getenv('SECRET_KEY')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['contribute-together-server.herokuapp.com']
+ALLOWED_HOSTS = ['contribute-together-server.herokuapp.com', '127.0.0.1']
 
 
 # Application definition
@@ -78,8 +79,15 @@ DATABASES = {
         'HOST':'ec2-52-86-177-34.compute-1.amazonaws.com',
         'PORT':'5432',
         'OPTIONS': { 'sslmode': 'require', 'options': '-c search_path=famcontribution,public'}
+    },
+    'test': {
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'NAME': 'postgres',
+        'USER': 'malavan.srikumat'
     }
 }
+if 'test' in sys.argv:
+    DATABASES['default'] = DATABASES['test'];
 
 
 # Password validation
