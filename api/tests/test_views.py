@@ -242,6 +242,42 @@ class TaxTest(TestCase):
             response.data, {
                 'TEST000': 1019, 'TEST001': 41, 'TEST002': 41})
 
+    def test_with_no_user_income(self):
+
+        user0 = User.objects.create(id='TEST000', name='Test0')
+        user1 = User.objects.create(id='TEST001', name='Test1')
+
+        # Target interval
+        target_interval = Interval.objects.create(
+            start_date='2021-10-04', end_date='2021-10-17')
+        
+        url = '/api/tax/' + str(target_interval.id)
+        response = client.get(url, follow=True)
+        self.assertEqual( response.data, {'message': 'Not all users paid'})
+        self.assertEqual( response.status_code, 403 )
+
+    def test_with_one_user_income_missing(self):
+        user0 = User.objects.create(id='TEST000', name='Test0')
+        user1 = User.objects.create(id='TEST001', name='Test1')
+
+        Interval.objects.create(
+            start_date='2021-09-20', end_date='2021-10-03')
+        # Target interval
+        target_interval = Interval.objects.create(
+            start_date='2021-10-04', end_date='2021-10-17')
+
+        income_source0 = IncomeSource.objects.create(
+            name='TestIncomeSource', user_id=user0.id)
+
+        Income.objects.create(
+            incomesource_id=income_source0.id,
+            amount=2000,
+            date='2021-10-07')
+
+        url = '/api/tax/' + str(target_interval.id)
+        response = client.get(url, follow=True)
+        self.assertEqual( response.data, {'message': 'Not all users paid'})
+        self.assertEqual( response.status_code, 403 )
 
 class IncomePerInterval(TestCase):
     def create_models(self):

@@ -4,13 +4,13 @@ import json
 
 from django.http import HttpResponse
 from django.db.models import F
-from rest_framework import generics
+from rest_framework import generics, status
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.decorators import api_view
 
 from api.models import User, IncomeSource, Income, Payment, Interval
-from api.helpers import get_average_incomes, get_tax_dict
+from api.helpers import get_average_incomes, get_tax_dict, has_all_paid
 from api.serializers import (
     UserSerializer, UserIncomeSourceSerializer, IncomeSerializer,
     PaymentSerializer, IntervalSerializer
@@ -98,6 +98,8 @@ class IntervalPaymentsListView(APIView):
 @api_view(['GET'])
 def tax(request, interval):
     """ GET the tax due for a specific interval """
+    if not has_all_paid(interval):
+        return Response({'message':'Not all users paid'}, status=status.HTTP_403_FORBIDDEN)
     return Response(get_tax_dict(interval))
 
 

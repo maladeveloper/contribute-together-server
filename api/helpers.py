@@ -1,5 +1,5 @@
 from django.db.models import Sum, F
-from api.models import Income, Interval
+from api.models import Income, Interval, User
 
 INTERVALS_PER_PERIOD = 2
 DEGREE_POLY = 1
@@ -53,3 +53,22 @@ def get_tax_dict(interval_id):
 
     total_tax = Interval.objects.get(id=interval_id).amount
     return apply_tax(income_dict, total_tax)
+
+
+def get_unpaid_paid_users(interval_id):
+    c_i = Interval.objects.filter(id=interval_id).first()
+    sd, ed = c_i.start_date, c_i.end_date
+    incs = Income.objects.filter(date__gte=sd, date__lte=ed)
+
+    paid_users = set([user['incomesource__user'] for user in incs.values('incomesource__user')])
+    all_users = set([user.id for user in User.objects.all()])
+    unpaid_users = all_users - paid_users
+
+    return unpaid_users, paid_users
+
+
+def has_all_paid(interval_id):
+    unpaid_users, _ = get_unpaid_paid_users(interval_id)
+    if len(unpaid_users) > 0:
+        return False
+    return True
