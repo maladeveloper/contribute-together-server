@@ -106,22 +106,18 @@ def tax(request, interval):
 @api_view(['GET'])
 def income_per_interval(request, interval):
     i_t = Interval.objects.get(id=interval)
-    incomes = Income.objects.filter(
-        date__gte=i_t.start_date,
-        date__lte=i_t.end_date).annotate(
-        user=F('incomesource__user'))
-    inc_array = [{'user': i.user, 'amount': i.amount,
-                  'incomesource': i.incomesource.name} for i in incomes]
-    users = incomes.values_list('user', flat=True).distinct()
     return_dict = {}
-    for user in users:
-        sources = {}
-        for inc in inc_array:
-            if inc['user'] == user:
-                source_name = inc['incomesource']
-                sources[source_name] = sources.get(
-                    source_name, 0) + inc['amount']
-        return_dict[user] = sources
+    for user in User.objects.all():
+        incomesources = IncomeSource.objects.filter(user=user)
+        user_source = {}
+        for inc_source in incomesources:
+            incomes = Income.objects.filter(date__gte=i_t.start_date, date__lte=i_t.end_date, incomesource=inc_source)
+            if len(incomes) > 0:
+                amount = sum([i.amount for i in incomes])
+                inc_ids = [i.id for i in incomes]
+                user_source[inc_source.name] = {'amount': amount, 'ids': inc_ids}
+        if len(user_source) > 0:
+            return_dict[user.id] = user_source
     return Response(return_dict)
 
 

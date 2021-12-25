@@ -284,6 +284,7 @@ class IncomePerInterval(TestCase):
         user0 = User.objects.create(id='TEST000', name='Test0')
         user1 = User.objects.create(id='TEST001', name='Test1')
         user2 = User.objects.create(id='TEST002', name='Test2')
+        user3 = User.objects.create(id='TEST003', name='Test3')
 
         target_interval = Interval.objects.create(
             start_date='2021-10-04', end_date='2021-10-17')
@@ -298,6 +299,8 @@ class IncomePerInterval(TestCase):
             name='TestIncomeSource', user_id=user2.id)
         income_source3 = IncomeSource.objects.create(
             name='AnotherIncomeSource', user_id=user2.id)
+        income_source4 = IncomeSource.objects.create(
+            name='WithEmptyIncome', user_id=user3.id)
 
         Income.objects.create(
             incomesource_id=income_source0.id,
@@ -322,16 +325,21 @@ class IncomePerInterval(TestCase):
             date='2021-10-07')
         return target_interval
 
-    def test_when_all_users_have_income_in_interval(self):
+    def test_when_users_have_income_in_interval(self):
         target_interval = self.create_models()
         response = client.get('/api/income/income-source/' +
                               str(target_interval.id), follow=True)
-        self.assertEqual(
-            response.data, {
-                'TEST000': {
-                    'TestIncomeSource': 1000}, 'TEST001': {
-                    'TestIncomeSource': 500}, 'TEST002': {
-                    'TestIncomeSource': 500, 'AnotherIncomeSource': 123}})
+        data = response.data
+        self.assertEqual(data['TEST000']['TestIncomeSource']['amount'],1000)
+        self.assertEqual(len(data['TEST000']['TestIncomeSource']['ids']),2)
+
+        self.assertEqual(data['TEST001']['TestIncomeSource']['amount'],500)
+        self.assertEqual(len(data['TEST001']['TestIncomeSource']['ids']),1)
+
+        self.assertEqual(data['TEST002']['TestIncomeSource']['amount'],500)
+        self.assertEqual(len(data['TEST002']['TestIncomeSource']['ids']),1)
+        self.assertEqual(data['TEST002']['AnotherIncomeSource']['amount'],123)
+        self.assertEqual(len(data['TEST002']['AnotherIncomeSource']['ids']),1)
 
 
 class IncomeAvgPerInterval(IncomePerInterval):
