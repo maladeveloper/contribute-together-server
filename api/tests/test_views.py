@@ -378,3 +378,6 @@ class DeleteSpecifiedIncomeTest(TestCase):
         self.assertEqual(response.status_code, 204)
         self.assertEqual(len(Income.objects.filter(pk=target_income.id)), 0)
 
+    def test_delete_non_existent_income(self):
+        response = client.delete('/api/income/999', follow=True)
+        self.assertEqual(response.status_code, 404)
