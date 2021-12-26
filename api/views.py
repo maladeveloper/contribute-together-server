@@ -100,7 +100,7 @@ class IntervalPaymentsListView(APIView):
 def tax(request, interval):
     """ GET the tax due for a specific interval """
     if not has_all_paid(interval):
-        return Response({'message':'Not all users paid'}, status=status.HTTP_403_FORBIDDEN)
+        return Response({'message': 'Not all users paid'}, status=status.HTTP_403_FORBIDDEN)
     return Response(get_tax_dict(interval))
 
 
@@ -131,6 +131,7 @@ def avg_income_per_interval(request, interval):
     return Response(ret_dict)
 
 # DELETE
+
 
 @api_view(['DELETE'])
 def delete_specific_income(request, income):

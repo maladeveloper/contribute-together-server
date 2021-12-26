@@ -6,7 +6,6 @@ import os
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
-
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/3.2/howto/deployment/checklist/
 
@@ -74,11 +73,11 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
         'PASSWORD': os.getenv('DATABASE_PASSWORD'),
-        'NAME':'d24jdgqrpcqjjr',
-        'USER':'okxnchihpvdlsl',
-        'HOST':'ec2-52-86-177-34.compute-1.amazonaws.com',
-        'PORT':'5432',
-        'OPTIONS': { 'sslmode': 'require', 'options': '-c search_path=famcontribution,public'}
+        'NAME': 'd24jdgqrpcqjjr',
+        'USER': 'okxnchihpvdlsl',
+        'HOST': 'ec2-52-86-177-34.compute-1.amazonaws.com',
+        'PORT': '5432',
+        'OPTIONS': {'sslmode': 'require', 'options': '-c search_path=famcontribution,public'}
     },
     'test': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
@@ -87,7 +86,7 @@ DATABASES = {
     }
 }
 if 'test' in sys.argv:
-    DATABASES['default'] = DATABASES['test'];
+    DATABASES['default'] = DATABASES['test']
 
 
 # Password validation
