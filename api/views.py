@@ -4,6 +4,7 @@ import json
 
 from django.http import HttpResponse
 from django.db.models import F
+from django.shortcuts import get_object_or_404
 from rest_framework import generics, status
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -128,3 +129,10 @@ def avg_income_per_interval(request, interval):
     for inc in avg_incs:
         ret_dict[inc['user']] = inc['amount']
     return Response(ret_dict)
+
+# DELETE
+
+@api_view(['DELETE'])
+def delete_specific_income(request, income):
+    get_object_or_404(Income, pk=income).delete()
+    return Response({'message': 'Delete income' + str(income)}, status=status.HTTP_204_NO_CONTENT)

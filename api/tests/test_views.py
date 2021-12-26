@@ -350,3 +350,31 @@ class IncomeAvgPerInterval(IncomePerInterval):
         self.assertEqual(
             response.data, {
                 'TEST000': 500, 'TEST001': 250, 'TEST002': 311})
+
+# DELETE
+
+class DeleteSpecifiedIncomeTest(TestCase):
+    def create_models(self):
+        user0 = User.objects.create(id='TEST000', name='Test0')
+        user1 = User.objects.create(id='TEST001', name='Test1')
+
+        income_source0 = IncomeSource.objects.create(
+            name='TestIncomeSource', user_id=user0.id)
+        income_source1 = IncomeSource.objects.create(
+            name='TestIncomeSource', user_id=user1.id)
+
+        Income.objects.create(
+            incomesource_id=income_source0.id,
+            amount=500,
+            date='2021-10-07')
+        return Income.objects.create(
+            incomesource_id=income_source1.id,
+            amount=500,
+            date='2021-10-07')
+
+    def test_delete_specific_income(self):
+        target_income = self.create_models()
+        response = client.delete('/api/income/' + str(target_income.id), follow=True)
+        self.assertEqual(response.status_code, 204)
+        self.assertEqual(len(Income.objects.filter(pk=target_income.id)), 0)
+
