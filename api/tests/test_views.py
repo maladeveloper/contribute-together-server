@@ -253,7 +253,7 @@ class TaxTest(TestCase):
         
         url = '/api/tax/' + str(target_interval.id)
         response = client.get(url, follow=True)
-        self.assertEqual( response.data, {'message': 'Not all users paid'})
+        self.assertEqual( response.data, {})
         self.assertEqual( response.status_code, 403 )
 
     def test_with_one_user_income_missing(self):
@@ -276,7 +276,7 @@ class TaxTest(TestCase):
 
         url = '/api/tax/' + str(target_interval.id)
         response = client.get(url, follow=True)
-        self.assertEqual( response.data, {'message': 'Not all users paid'})
+        self.assertEqual( response.data, {})
         self.assertEqual( response.status_code, 403 )
 
 class IncomePerInterval(TestCase):
