@@ -11,7 +11,7 @@ from rest_framework.response import Response
 from rest_framework.decorators import api_view
 
 from api.models import User, IncomeSource, Income, Payment, Interval
-from api.helpers import get_average_incomes, get_tax_dict, has_all_paid
+from api.helpers import get_average_incomes, get_tax_dict, has_all_paid, get_unpaid_paid_users
 from api.serializers import (
     UserSerializer, UserIncomeSourceSerializer, IncomeSerializer,
     PaymentSerializer, IntervalSerializer
@@ -129,6 +129,15 @@ def avg_income_per_interval(request, interval):
     for inc in avg_incs:
         ret_dict[inc['user']] = inc['amount']
     return Response(ret_dict)
+
+
+@api_view(['GET'])
+def unpaid_users_per_interval(request, interval):
+    unpaid, _ = get_unpaid_paid_users(interval)
+    unpaid_arr = list(unpaid)
+    unpaid_arr.sort()
+    return Response(unpaid_arr)
+
 
 # DELETE
 

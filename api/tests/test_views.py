@@ -351,6 +351,31 @@ class IncomeAvgPerInterval(IncomePerInterval):
             response.data, {
                 'TEST000': 500, 'TEST001': 250, 'TEST002': 311})
 
+class UsersUnpaidPerInterval(TestCase):
+    def create_models(self):
+        user0 = User.objects.create(id='TEST000', name='Test0')
+        user1 = User.objects.create(id='TEST001', name='Test1')
+        user2 = User.objects.create(id='TEST002', name='Test2')
+
+        target_interval = Interval.objects.create(
+            start_date='2021-10-04', end_date='2021-10-17')
+
+        income_source0 = IncomeSource.objects.create(
+            name='TestIncomeSource', user_id=user0.id)
+
+        Income.objects.create(
+            incomesource_id=income_source0.id,
+            amount=500,
+            date='2021-10-07')
+        return target_interval
+
+    def test_unpaid_users_in_interval(self):
+        target_interval = self.create_models()
+        response = client.get('/api/users/unpaid/' + str(target_interval.id), follow=True)
+        self.assertEqual( response.data, ['TEST001', 'TEST002'])
+
+
+
 # DELETE
 
 class DeleteSpecifiedIncomeTest(TestCase):
