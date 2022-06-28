@@ -10,7 +10,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.decorators import api_view
 
-from api.models import User, IncomeSource, Income, Payment, Interval
+from api.models import User, IncomeSource, Income, Payment, Interval, NumericalParams
 from api.helpers import get_average_incomes, get_tax_dict, has_all_income_submitted, get_income_unsubmitted_users, submit_income_as_payment
 from api.serializers import (
     UserSerializer, UserIncomeSourceSerializer, IncomeSerializer,
@@ -58,11 +58,12 @@ class IntervalLatestListView(APIView):
     def add_latest_intervals(self, c_d, l_i):
         d_d = c_d - l_i.end_date
         i_to_add = math.ceil(d_d.days / DAYS_IN_INTERVAL)
+        default_interval_amount = NumericalParams.objects.get(pk='default_interval_amount').value
         for _ in range(i_to_add):
             i_l = Interval.objects.all().order_by('-end_date').first()
             n_sd = i_l.end_date + timedelta(days=1)
             n_ed = n_sd + timedelta(days=DAYS_IN_INTERVAL - 1)
-            Interval.objects.create(start_date=n_sd, end_date=n_ed)
+            Interval.objects.create(start_date=n_sd, end_date=n_ed, amount=default_interval_amount)
 
     def get(self, request):
         l_i = Interval.objects.all().order_by('-end_date').first()

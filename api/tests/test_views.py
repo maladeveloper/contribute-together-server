@@ -5,7 +5,7 @@ from django.forms.models import model_to_dict
 from django.test import TestCase, Client
 from rest_framework import status
 
-from ..models import User, IncomeSource, Income, Interval, Payment
+from ..models import User, IncomeSource, Income, Interval, Payment, NumericalParams
 
 # pylint: disable=no-self-use
 
@@ -110,17 +110,16 @@ class UserListTest(TestCase):
 
 class IntervalListTest(TestCase):
     def create_intervals(self):
+        default_interval_amount = 1243
+        NumericalParams.objects.create(key='default_interval_amount', value=default_interval_amount)
         # Create a seed interval far in the past
         s_d = date.today()
-        Interval.objects.create(
-            start_date=s_d - timedelta(61),
-            end_date=s_d - timedelta(48))
-        return Interval.objects.create(
-            start_date=s_d - timedelta(47),
-            end_date=s_d - timedelta(34))
+        Interval.objects.create( start_date=s_d - timedelta(61), end_date=s_d - timedelta(48))
+        Interval.objects.create( start_date=s_d - timedelta(47), end_date=s_d - timedelta(34))
+        return default_interval_amount
 
     def test_get_intervals(self):
-        self.create_intervals()
+        expected_amount = self.create_intervals()
         client.get('/api/intervals/', follow=True)
         s_d = date.today()
         i_s = Interval.objects.all().order_by('-end_date')
@@ -130,6 +129,7 @@ class IntervalListTest(TestCase):
         )
         self.assertEqual(len(i_s), 5)
         l_i = i_s.first()
+        self.assertEqual(l_i.amount, expected_amount)
         self.assertEqual(l_i.end_date, s_d + timedelta(8))
         self.assertEqual(l_i.start_date, s_d - timedelta(5))
 
