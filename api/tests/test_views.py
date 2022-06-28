@@ -149,6 +149,18 @@ class UserIncomeSourceListTest(TestCase):
                 response.data[0].keys()).sort(), [
                 'name', 'id'].sort())
 
+class NumericalParamsGetTest(TestCase):
+    def create_models(self):
+        NumericalParams.objects.create(key='default_interval_amount', value=1234)
+        NumericalParams.objects.create(key='hello', value=1111)
+
+    def test_get_numerical_params(self):
+        self.create_models()
+        response = client.get('/api/numerical-params/', follow=True)
+        self.assertEqual(response.data, {'default_interval_amount': 1234, 'hello': 1111})
+
+
+
 # Specified by interval
 
 

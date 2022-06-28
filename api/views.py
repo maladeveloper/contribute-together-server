@@ -87,8 +87,16 @@ class UserIncomeSourceListView(APIView):
         serializer = UserIncomeSourceSerializer(income_sources, many=True)
         return Response(serializer.data)
 
-# Specified by interval
 
+@api_view(['GET'])
+def numerical_params(request):
+    params_dict = {}
+    for numerical_param in NumericalParams.objects.all():
+        params_dict[numerical_param.key] = numerical_param.value
+    return Response(params_dict)
+
+
+# Specified by interval
 
 @api_view(['GET'])
 def payment(request, interval):
