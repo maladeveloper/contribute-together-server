@@ -20,7 +20,7 @@ urlpatterns = [
     path('tax/<str:interval>/', views.tax),
     path('income/income-source/<str:interval>/', views.income_per_interval),
     path('income/averaged/<str:interval>', views.avg_income_per_interval),
-    path('users/unpaid/<str:interval>', views.unpaid_users_per_interval),
+    path('users/unsubmitted/<str:interval>', views.unsubmitted_users_per_interval),
     # Metrics
     path('metrics/total-income-by-interval', views.total_income_by_interval),
     path('metrics/total-tax-by-interval', views.total_tax_by_interval),

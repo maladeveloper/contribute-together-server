@@ -11,7 +11,7 @@ from rest_framework.response import Response
 from rest_framework.decorators import api_view
 
 from api.models import User, IncomeSource, Income, Payment, Interval
-from api.helpers import get_average_incomes, get_tax_dict, has_all_paid, get_unpaid_paid_users
+from api.helpers import get_average_incomes, get_tax_dict, has_all_income_submitted, get_income_unsubmitted_users, submit_income_as_payment
 from api.serializers import (
     UserSerializer, UserIncomeSourceSerializer, IncomeSerializer,
     PaymentSerializer, IntervalSerializer
@@ -99,9 +99,13 @@ class IntervalPaymentsListView(APIView):
 @api_view(['GET'])
 def tax(request, interval):
     """ GET the tax due for a specific interval """
-    if not has_all_paid(interval):
+    if not has_all_income_submitted(interval):
         return Response({}, status=status.HTTP_403_FORBIDDEN)
-    return Response(get_tax_dict(interval))
+
+    tax_dict = get_tax_dict(interval)
+    submit_income_as_payment(interval, tax_dict)
+
+    return Response(tax_dict)
 
 
 @api_view(['GET'])
@@ -132,10 +136,10 @@ def avg_income_per_interval(request, interval):
 
 
 @api_view(['GET'])
-def unpaid_users_per_interval(request, interval):
-    unpaid, _ = get_unpaid_paid_users(interval)
-    unpaid_arr = sorted(unpaid)
-    return Response(unpaid_arr)
+def unsubmitted_users_per_interval(request, interval):
+    unsubmitted, _ = get_income_unsubmitted_users(interval)
+    unsubmitted_arr = sorted(unsubmitted)
+    return Response(unsubmitted_arr)
 
 
 @api_view(['GET'])
