@@ -164,30 +164,23 @@ class IntervalPaymentsTest(TestCase):
         user2 = User.objects.create(id='TEST002', name='Test2')
 
         # Create payments associated with each user and the interval
-        Payment.objects.create(
-            user_id=user0.id, interval_id=interval.id, amount=10)
-        Payment.objects.create(
-            user_id=user1.id, interval_id=interval.id, amount=10)
-        Payment.objects.create(
-            user_id=user2.id, interval_id=interval.id, amount=10)
+        Payment.objects.create( user_id=user0.id, interval_id=interval.id, amount=10)
+        Payment.objects.create( user_id=user1.id, interval_id=interval.id, amount=50)
+        Payment.objects.create( user_id=user2.id, interval_id=interval.id, amount=80)
         return interval
 
     def test_get_payments_per_existing_interval(self):
         interval = self.create_models()
         db_pays = Payment.objects.all()
         response = client.get('/api/payment/' + str(interval.id), follow=True)
-        expected_pays = sorted([model_to_dict(pay)
-                               for pay in db_pays], key=lambda d: d['id'])
-        received_pays = sorted([dict(pay)
-                               for pay in response.data], key=lambda d: d['id'])
-        self.assertEqual(expected_pays, received_pays)
-        self.assertEqual(len(response.data), 3)
+        self.assertEqual( response.data, { 'TEST000': 10, 'TEST001': 50, 'TEST002': 80})
 
     def test_get_payments_per_non_existing_interval(self):
         interval = self.create_models()
         response = client.get(
             '/api/payment/' + str(interval.id + 999), follow=True)
         self.assertEqual(len(response.data), 0)
+        self.assertEqual( response.data, {})
 
 
 class TaxTest(TestCase):

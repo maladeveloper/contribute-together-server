@@ -16,7 +16,7 @@ urlpatterns = [
     path('users/', views.UserListView.as_view()),
     path('income-sources/<str:user>/', views.UserIncomeSourceListView.as_view()),
     # Specified by interval
-    path('payment/<str:interval>/', views.IntervalPaymentsListView.as_view()),
+    path('payment/<str:interval>/', views.payment),
     path('tax/<str:interval>/', views.tax),
     path('income/income-source/<str:interval>/', views.income_per_interval),
     path('income/averaged/<str:interval>', views.avg_income_per_interval),

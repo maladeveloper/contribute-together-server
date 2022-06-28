@@ -89,11 +89,14 @@ class UserIncomeSourceListView(APIView):
 # Specified by interval
 
 
-class IntervalPaymentsListView(APIView):
-    def get(self, request, interval):
-        payments = Payment.objects.filter(interval_id=interval)
-        serializer = PaymentSerializer(payments, many=True)
-        return Response(serializer.data)
+@api_view(['GET'])
+def payment(request, interval):
+    payment_dict = {}
+    payments = Payment.objects.filter(interval_id=interval)
+    for payment in payments:
+        payment_dict[payment.user.id] = payment.amount
+
+    return Response(payment_dict)
 
 
 @api_view(['GET'])
