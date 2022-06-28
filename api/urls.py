@@ -21,6 +21,9 @@ urlpatterns = [
     path('income/income-source/<str:interval>/', views.income_per_interval),
     path('income/averaged/<str:interval>', views.avg_income_per_interval),
     path('users/unpaid/<str:interval>', views.unpaid_users_per_interval),
+    # Metrics
+    path('metrics/total-income-by-interval', views.total_income_by_interval),
+    path('metrics/total-tax-by-interval', views.total_tax_by_interval),
 
     # DELETE
     path('income/<str:income>', views.delete_specific_income),

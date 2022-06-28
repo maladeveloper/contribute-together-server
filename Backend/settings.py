@@ -82,7 +82,7 @@ DATABASES = {
     'test': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
         'NAME': 'postgres',
-        'USER': 'malavan.srikumat'
+        'USER': 'malavansrikumar'
     }
 }
 if 'test' in sys.argv:

@@ -3,7 +3,7 @@ from datetime import date, timedelta
 import json
 
 from django.http import HttpResponse
-from django.db.models import F
+from django.db.models import F, Sum
 from django.shortcuts import get_object_or_404
 from rest_framework import generics, status
 from rest_framework.views import APIView
@@ -134,9 +134,33 @@ def avg_income_per_interval(request, interval):
 @api_view(['GET'])
 def unpaid_users_per_interval(request, interval):
     unpaid, _ = get_unpaid_paid_users(interval)
-    unpaid_arr = list(unpaid)
-    unpaid_arr.sort()
+    unpaid_arr = sorted(unpaid)
     return Response(unpaid_arr)
+
+
+@api_view(['GET'])
+def total_income_by_interval(request):
+    return_dict, all_intervals = {}, Interval.objects.all()
+    for i_o in all_intervals:
+        sd, ed = i_o.start_date, i_o.end_date
+        key = str(sd) + '_' + str(ed)
+        return_dict[key], income_per_user = {}, {}
+        for user in User.objects.all():
+            income_per_user[user.id] = Income.objects.filter(
+                date__gte=sd, date__lte=ed, incomesource__user__id=user.id
+            ).aggregate(Sum('amount'))['amount__sum']
+        return_dict[key] = income_per_user
+    return Response(return_dict)
+
+
+@api_view(['GET'])
+def total_tax_by_interval(request):
+    return_dict, all_intervals = {}, Interval.objects.all()
+    for i_o in all_intervals:
+        sd, ed = i_o.start_date, i_o.end_date
+        key = str(sd) + '_' + str(ed)
+        return_dict[key] = get_tax_dict(i_o.id)
+    return Response(return_dict)
 
 
 # DELETE

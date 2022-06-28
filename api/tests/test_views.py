@@ -286,10 +286,8 @@ class IncomePerInterval(TestCase):
         user2 = User.objects.create(id='TEST002', name='Test2')
         user3 = User.objects.create(id='TEST003', name='Test3')
 
-        target_interval = Interval.objects.create(
-            start_date='2021-10-04', end_date='2021-10-17')
-        Interval.objects.create(
-            start_date='2021-09-20', end_date='2021-10-03')
+        target_interval = Interval.objects.create( start_date='2021-10-04', end_date='2021-10-17')
+        Interval.objects.create( start_date='2021-09-20', end_date='2021-10-03')
 
         income_source0 = IncomeSource.objects.create(
             name='TestIncomeSource', user_id=user0.id)
@@ -302,27 +300,11 @@ class IncomePerInterval(TestCase):
         income_source4 = IncomeSource.objects.create(
             name='WithEmptyIncome', user_id=user3.id)
 
-        Income.objects.create(
-            incomesource_id=income_source0.id,
-            amount=500,
-            date='2021-10-07')
-        Income.objects.create(
-            incomesource_id=income_source0.id,
-            amount=500,
-            date='2021-10-07')
-        Income.objects.create(
-            incomesource_id=income_source1.id,
-            amount=500,
-            date='2021-10-07')
-        Income.objects.create(
-            incomesource_id=income_source2.id,
-            amount=500,
-            date='2021-10-07')
-
-        Income.objects.create(
-            incomesource_id=income_source3.id,
-            amount=123,
-            date='2021-10-07')
+        Income.objects.create( incomesource_id=income_source0.id, amount=500, date='2021-10-07')
+        Income.objects.create( incomesource_id=income_source0.id, amount=500, date='2021-10-07')
+        Income.objects.create( incomesource_id=income_source1.id, amount=500, date='2021-10-07')
+        Income.objects.create( incomesource_id=income_source2.id, amount=500, date='2021-10-07')
+        Income.objects.create( incomesource_id=income_source3.id, amount=123, date='2021-10-07')
         return target_interval
 
     def test_when_users_have_income_in_interval(self):
@@ -374,6 +356,48 @@ class UsersUnpaidPerInterval(TestCase):
         response = client.get('/api/users/unpaid/' + str(target_interval.id), follow=True)
         self.assertEqual( response.data, ['TEST001', 'TEST002'])
 
+class TotalIncomeByInterval(TestCase):
+    def create_models(self):
+        user0 = User.objects.create(id='TEST000', name='Test0')
+        user1 = User.objects.create(id='TEST001', name='Test1')
+        user2 = User.objects.create(id='TEST002', name='Test2')
+
+        Interval.objects.create( start_date='2021-10-04', end_date='2021-10-17')
+        Interval.objects.create( start_date='2021-09-20', end_date='2021-10-03')
+
+        income_source0 = IncomeSource.objects.create( name='TestIncomeSource', user_id=user0.id)
+        income_source1 = IncomeSource.objects.create( name='TestIncomeSource', user_id=user1.id)
+        income_source2 = IncomeSource.objects.create( name='TestIncomeSource', user_id=user2.id)
+        income_source3 = IncomeSource.objects.create( name='AnotherIncomeSource', user_id=user2.id)
+
+        Income.objects.create( incomesource_id=income_source0.id, amount=100, date='2021-10-07')
+        Income.objects.create( incomesource_id=income_source1.id, amount=200, date='2021-10-07')
+        Income.objects.create( incomesource_id=income_source2.id, amount=300, date='2021-10-07')
+        Income.objects.create( incomesource_id=income_source3.id, amount=400, date='2021-10-07')
+        Income.objects.create( incomesource_id=income_source0.id, amount=500, date='2021-09-23')
+        Income.objects.create( incomesource_id=income_source1.id, amount=600, date='2021-09-24')
+        Income.objects.create( incomesource_id=income_source2.id, amount=700, date='2021-09-25')
+        Income.objects.create( incomesource_id=income_source3.id, amount=800, date='2021-09-26')
+
+    def test_total_income_by_interval(self):
+        self.create_models()
+        response = client.get('/api/metrics/total-income-by-interval', follow=True)
+
+        self.assertEqual( response.data, {
+            '2021-10-04_2021-10-17': {'TEST000': 100, 'TEST001': 200, 'TEST002': 700},
+            '2021-09-20_2021-10-03': {'TEST000': 500, 'TEST001': 600, 'TEST002': 1500}
+        })
+
+
+class TotalTaxByInterval(TotalIncomeByInterval):
+    def test_total_tax_by_interval(self):
+        self.create_models()
+        response = client.get('/api/metrics/total-tax-by-interval', follow=True)
+
+        self.assertEqual( response.data, {
+            '2021-10-04_2021-10-17': {'TEST000': 68, 'TEST001': 121, 'TEST002': 912},
+            '2021-09-20_2021-10-03': {'TEST000': 96, 'TEST001': 138, 'TEST002': 865}
+        })
 
 
 # DELETE
