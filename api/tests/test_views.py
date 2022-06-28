@@ -198,49 +198,36 @@ class TaxTest(TestCase):
 
         # Create 2 intervals before the target interval and 1 interval after - total 4 intervals
         # Before intervals
-        Interval.objects.create(
-            start_date='2021-09-06', end_date='2021-09-19')
-        Interval.objects.create(
-            start_date='2021-09-20', end_date='2021-10-03')
+        Interval.objects.create( start_date='2021-09-06', end_date='2021-09-19')
+        Interval.objects.create( start_date='2021-09-20', end_date='2021-10-03')
         # Target interval
-        target_interval = Interval.objects.create(
-            start_date='2021-10-04', end_date='2021-10-17')
+        target_interval = Interval.objects.create( start_date='2021-10-04', end_date='2021-10-17')
         # After interval
-        Interval.objects.create(
-            start_date='2021-10-18', end_date='2021-10-31')
+        Interval.objects.create( start_date='2021-10-18', end_date='2021-10-31')
 
-        income_source0 = IncomeSource.objects.create(
-            name='TestIncomeSource', user_id=user0.id)
-        income_source1 = IncomeSource.objects.create(
-            name='TestIncomeSource', user_id=user1.id)
-        income_source2 = IncomeSource.objects.create(
-            name='TestIncomeSource', user_id=user2.id)
+        income_source0 = IncomeSource.objects.create( name='TestIncomeSource', user_id=user0.id)
+        income_source1 = IncomeSource.objects.create( name='TestIncomeSource', user_id=user1.id)
+        income_source2 = IncomeSource.objects.create( name='TestIncomeSource', user_id=user2.id)
 
         # User 1 has income in interval directly before target interval
-        Income.objects.create(
-            incomesource_id=income_source0.id, amount=2000, date='2021-09-23')
+        Income.objects.create( incomesource_id=income_source0.id, amount=2000, date='2021-09-23')
+
         # All other users have income in target interval
-        Income.objects.create(
-            incomesource_id=income_source0.id,
-            amount=500,
-            date='2021-10-07')
-        Income.objects.create(
-            incomesource_id=income_source1.id,
-            amount=500,
-            date='2021-10-07')
-        Income.objects.create(
-            incomesource_id=income_source2.id,
-            amount=500,
-            date='2021-10-07')
+        Income.objects.create( incomesource_id=income_source0.id, amount=500, date='2021-10-07')
+        Income.objects.create( incomesource_id=income_source1.id, amount=500, date='2021-10-07')
+        Income.objects.create( incomesource_id=income_source2.id, amount=500, date='2021-10-07')
+        
+        # Create random payment that should be deleted before the tax data is added
+        Payment.objects.create( interval_id=target_interval.id, user_id=user0.id, amount=999 )
+
         return target_interval
 
     def test_with_all_user_incomes(self):
         target_interval = self.create_models()
         url = '/api/tax/' + str(target_interval.id)
         response = client.get(url, follow=True)
-        self.assertEqual(
-            response.data, {
-                'TEST000': 1019, 'TEST001': 41, 'TEST002': 41})
+        self.assertEqual( response.data, { 'TEST000': 1019, 'TEST001': 41, 'TEST002': 41})
+        self.assertEqual(len(Payment.objects.all()),3)
 
     def test_with_no_user_income(self):
 
@@ -260,19 +247,13 @@ class TaxTest(TestCase):
         user0 = User.objects.create(id='TEST000', name='Test0')
         user1 = User.objects.create(id='TEST001', name='Test1')
 
-        Interval.objects.create(
-            start_date='2021-09-20', end_date='2021-10-03')
+        Interval.objects.create( start_date='2021-09-20', end_date='2021-10-03')
         # Target interval
-        target_interval = Interval.objects.create(
-            start_date='2021-10-04', end_date='2021-10-17')
+        target_interval = Interval.objects.create( start_date='2021-10-04', end_date='2021-10-17')
 
-        income_source0 = IncomeSource.objects.create(
-            name='TestIncomeSource', user_id=user0.id)
+        income_source0 = IncomeSource.objects.create( name='TestIncomeSource', user_id=user0.id)
 
-        Income.objects.create(
-            incomesource_id=income_source0.id,
-            amount=2000,
-            date='2021-10-07')
+        Income.objects.create( incomesource_id=income_source0.id, amount=2000, date='2021-10-07')
 
         url = '/api/tax/' + str(target_interval.id)
         response = client.get(url, follow=True)
