@@ -11,11 +11,13 @@ urlpatterns = [
     # POST
     path('income/', views.IncomeView.as_view()),
     path('payment/', views.PaymentView.as_view()),
+
+
     # GET
     path('intervals/', views.IntervalLatestListView.as_view()),
     path('users/', views.UserListView.as_view()),
     path('income-sources/<str:user>/', views.UserIncomeSourceListView.as_view()),
-    path('numerical-params/', views.numerical_params),
+
     # Specified by interval
     path('payment/<str:interval>/', views.payment),
     path('tax/<str:interval>/', views.tax),
@@ -28,6 +30,9 @@ urlpatterns = [
 
     # DELETE
     path('income/<str:income>', views.delete_specific_income),
+
+    # GET and PATCH
+    path('numerical-params/', views.numerical_params),
 
 
 ]

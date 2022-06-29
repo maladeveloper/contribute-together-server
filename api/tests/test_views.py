@@ -149,17 +149,6 @@ class UserIncomeSourceListTest(TestCase):
                 response.data[0].keys()).sort(), [
                 'name', 'id'].sort())
 
-class NumericalParamsGetTest(TestCase):
-    def create_models(self):
-        NumericalParams.objects.create(key='default_interval_amount', value=1234)
-        NumericalParams.objects.create(key='hello', value=1111)
-
-    def test_get_numerical_params(self):
-        self.create_models()
-        response = client.get('/api/numerical-params/', follow=True)
-        self.assertEqual(response.data, {'default_interval_amount': 1234, 'hello': 1111})
-
-
 
 # Specified by interval
 
@@ -411,3 +400,51 @@ class DeleteSpecifiedIncomeTest(TestCase):
     def test_delete_non_existent_income(self):
         response = client.delete('/api/income/999', follow=True)
         self.assertEqual(response.status_code, 404)
+
+
+# GET and PATCH
+
+
+class NumericalParamsTest(TestCase):
+    def create_models(self):
+        target_key = 'default_interval_amount'
+        NumericalParams.objects.create(key=target_key, value=1234)
+        NumericalParams.objects.create(key='hello', value=1111)
+        return target_key
+
+    def test_get_numerical_params(self):
+        self.create_models()
+        response = client.get('/api/numerical-params/', follow=True)
+        self.assertEqual(response.data, {'default_interval_amount': 1234, 'hello': 1111})
+
+    def test_patch_numerical_params(self):
+        target_key = self.create_models()
+        response = client.patch(
+            '/api/numerical-params/', json.dumps({'key': 'default_interval_amount', 'value': 999}), content_type='application/json'
+        )
+        self.assertEqual(NumericalParams.objects.get(pk=target_key).value, 999)
+        self.assertEqual(response.status_code, 200)
+
+    def test_patch_numerical_params_missing_value(self):
+        target_key = self.create_models()
+        response = client.patch(
+            '/api/numerical-params/', json.dumps({'key': 'default_interval_amount'}), content_type='application/json'
+        )
+        self.assertEqual(NumericalParams.objects.get(pk=target_key).value, 1234)
+        self.assertEqual(response.status_code, 400)
+
+    def test_patch_numerical_params_unknown_key(self):
+        target_key = self.create_models()
+        response = client.patch(
+            '/api/numerical-params/', json.dumps({'key': 'xyz', 'value': 999}), content_type='application/json'
+        )
+        self.assertEqual(NumericalParams.objects.get(pk=target_key).value, 1234)
+        self.assertEqual(response.status_code, 400)
+
+    def test_patch_numerical_params_value_wrong_format(self):
+        target_key = self.create_models()
+        response = client.patch(
+            '/api/numerical-params/', json.dumps({'key': 'default_interval_amount', 'value': '999'}), content_type='application/json'
+        )
+        self.assertEqual(NumericalParams.objects.get(pk=target_key).value, 1234)
+        self.assertEqual(response.status_code, 400)

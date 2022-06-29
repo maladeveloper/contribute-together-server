@@ -88,14 +88,6 @@ class UserIncomeSourceListView(APIView):
         return Response(serializer.data)
 
 
-@api_view(['GET'])
-def numerical_params(request):
-    params_dict = {}
-    for numerical_param in NumericalParams.objects.all():
-        params_dict[numerical_param.key] = numerical_param.value
-    return Response(params_dict)
-
-
 # Specified by interval
 
 @api_view(['GET'])
@@ -186,3 +178,33 @@ def total_tax_by_interval(request):
 def delete_specific_income(request, income):
     get_object_or_404(Income, pk=income).delete()
     return Response({'message': 'Delete income' + str(income)}, status=status.HTTP_204_NO_CONTENT)
+
+
+@api_view(['GET', 'PATCH'])
+def numerical_params(request):
+    if request.method == 'GET':
+        params_dict = {}
+        for numerical_param in NumericalParams.objects.all():
+            params_dict[numerical_param.key] = numerical_param.value
+        return Response(params_dict)
+
+    elif request.method == 'PATCH':
+        patch_data = json.loads(request.body.decode('utf-8'))
+        key = patch_data.get('key', None)
+        value = patch_data.get('value', None)
+
+        if key is None or value is None:
+            return Response({'message': 'Missing key or value.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        if not isinstance(value, int):
+            return Response({'message': 'Value is not an integer.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            param = NumericalParams.objects.get(pk=key)
+        except NumericalParams.DoesNotExist:
+            return Response({'message': 'Key does not exist.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        param.value = value
+        param.save()
+
+        return Response({'message': 'Patch success.'}, status=status.HTTP_200_OK)
