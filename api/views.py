@@ -164,17 +164,23 @@ def total_paid(request):
 
 @api_view(['GET'])
 def total_income_by_interval(request):
-    return_dict, all_intervals = {}, Interval.objects.all()
+    return_arr, all_intervals = [], Interval.objects.all()
     for i_o in all_intervals:
         sd, ed = i_o.start_date, i_o.end_date
         key = str(sd) + '_' + str(ed)
-        return_dict[key], income_per_user = {}, {}
+        interval_dict = {}
+        interval_dict['start_date'] = str(i_o.start_date)
+        interval_dict['end_date'] = str(i_o.end_date)
         for user in User.objects.all():
-            income_per_user[user.id] = Income.objects.filter(
+            income = Income.objects.filter(
                 date__gte=sd, date__lte=ed, incomesource__user__id=user.id
             ).aggregate(Sum('amount'))['amount__sum']
-        return_dict[key] = income_per_user
-    return Response(return_dict)
+            if not income:
+                income = 0
+            interval_dict[user.id] = income
+
+        return_arr.append(interval_dict)
+    return Response(return_arr)
 
 
 @api_view(['GET'])
