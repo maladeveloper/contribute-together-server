@@ -164,41 +164,30 @@ def total_paid(request):
 
 @api_view(['GET'])
 def total_income_by_interval(request):
-    return_arr, all_intervals = [], Interval.objects.all()
+    return_dict, all_intervals = {}, Interval.objects.all()
     for i_o in all_intervals:
         sd, ed = i_o.start_date, i_o.end_date
         key = str(sd) + '_' + str(ed)
-        interval_dict = {}
-        interval_dict['start_date'] = str(i_o.start_date)
-        interval_dict['end_date'] = str(i_o.end_date)
-        for user in User.objects.all():
-            income = Income.objects.filter(
-                date__gte=sd, date__lte=ed, incomesource__user__id=user.id
-            ).aggregate(Sum('amount'))['amount__sum']
-            if not income:
-                income = 0
-            interval_dict[user.id] = income
+        income = Income.objects.filter(date__gte=sd, date__lte=ed, ).aggregate(Sum('amount'))['amount__sum']
+        if income is None:
+            income = 0
+        return_dict[key] = income
 
-        return_arr.append(interval_dict)
-    return Response(return_arr)
+    return Response(return_dict)
 
 
 @api_view(['GET'])
 def total_payment_by_interval(request):
-    return_arr, all_intervals = [], Interval.objects.all()
+    return_dict, all_intervals = {}, Interval.objects.all()
     for i_o in all_intervals:
-        interval_dict = {}
-        interval_dict['start_date'] = str(i_o.start_date)
-        interval_dict['end_date'] = str(i_o.end_date)
-        for user in User.objects.all():
-            try:
-                interval_dict[user.id] = Payment.objects.get(interval__id=i_o.id, user__id=user.id).amount
-            except Payment.DoesNotExist:
-                interval_dict[user.id] = 0
+        sd, ed = i_o.start_date, i_o.end_date
+        key = str(sd) + '_' + str(ed)
+        payment = Payment.objects.filter(interval__id=i_o.id).aggregate(Sum('amount'))['amount__sum']
+        if payment is None:
+            payment = 0
+        return_dict[key] = payment
 
-        return_arr.append(interval_dict)
-
-    return Response(return_arr)
+    return Response(return_dict)
 
 
 # DELETE

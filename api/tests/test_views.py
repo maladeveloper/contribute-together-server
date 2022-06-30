@@ -386,20 +386,14 @@ class TotalIncomeByInterval(TotalIncome):
         self.create_models()
         response = client.get('/api/metrics/total-income-by-interval', follow=True)
 
-        self.assertEqual(response.data, [
-            {'start_date': '2021-10-04', 'end_date': '2021-10-17', 'TEST000': 100, 'TEST001': 200, 'TEST002': 700},
-            {'start_date': '2021-09-20', 'end_date': '2021-10-03', 'TEST000': 500, 'TEST001': 600, 'TEST002': 1500}
-        ])
+        self.assertEqual(response.data, {'2021-10-04_2021-10-17': 1000, '2021-09-20_2021-10-03': 2600})
 
-    def test_total_income_by_interval_missing_interval_income(self):
+    def test_total_income_by_interval_missing_income(self):
         self.create_models()
-        Income.objects.filter(incomesource__user__id='TEST000').delete()
+        Income.objects.all().delete()
         response = client.get('/api/metrics/total-income-by-interval', follow=True)
 
-        self.assertEqual(response.data, [
-            {'start_date': '2021-10-04', 'end_date': '2021-10-17', 'TEST000': 0, 'TEST001': 200, 'TEST002': 700},
-            {'start_date': '2021-09-20', 'end_date': '2021-10-03', 'TEST000': 0, 'TEST001': 600, 'TEST002': 1500}
-        ])
+        self.assertEqual(response.data, {'2021-10-04_2021-10-17': 0, '2021-09-20_2021-10-03': 0})
 
 
 class TotalPaymentByInterval(TotalPaid):
@@ -407,20 +401,14 @@ class TotalPaymentByInterval(TotalPaid):
         self.create_models()
         response = client.get('/api/metrics/total-payment-by-interval', follow=True)
 
-        self.assertEqual(response.data, [
-            {'start_date': '2021-09-06', 'end_date': '2021-09-19', 'TEST000': 10, 'TEST001': 20, 'TEST002': 30},
-            {'start_date': '2022-01-24', 'end_date': '2021-09-19', 'TEST000': 40, 'TEST001': 50, 'TEST002': 60}
-        ])
+        self.assertEqual(response.data, {'2021-09-06_2021-09-19': 60, '2022-01-24_2021-09-19': 150})
 
-    def test_total_payment_by_interval_missing_interval_payment(self):
+    def test_total_payment_by_interval_missing_payment(self):
         self.create_models()
-        Payment.objects.filter(user__id='TEST000').delete()
+        Payment.objects.all().delete()
         response = client.get('/api/metrics/total-payment-by-interval', follow=True)
 
-        self.assertEqual(response.data, [
-            {'start_date': '2021-09-06', 'end_date': '2021-09-19', 'TEST000': 0, 'TEST001': 20, 'TEST002': 30},
-            {'start_date': '2022-01-24', 'end_date': '2021-09-19', 'TEST000': 0, 'TEST001': 50, 'TEST002': 60}
-        ])
+        self.assertEqual(response.data, {'2021-09-06_2021-09-19': 0, '2022-01-24_2021-09-19': 0})
 
 
 # DELETE
