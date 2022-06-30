@@ -147,6 +147,22 @@ def unsubmitted_users_per_interval(request, interval):
 
 
 @api_view(['GET'])
+def total_income(request):
+    return_dict = {}
+    for user in User.objects.all():
+        return_dict[user.id] = Income.objects.filter(incomesource__user__id=user.id).aggregate(Sum('amount'))['amount__sum']
+    return Response(return_dict)
+
+
+@api_view(['GET'])
+def total_paid(request):
+    return_dict = {}
+    for user in User.objects.all():
+        return_dict[user.id] = Payment.objects.filter(user__id=user.id).aggregate(Sum('amount'))['amount__sum']
+    return Response(return_dict)
+
+
+@api_view(['GET'])
 def total_income_by_interval(request):
     return_dict, all_intervals = {}, Interval.objects.all()
     for i_o in all_intervals:
