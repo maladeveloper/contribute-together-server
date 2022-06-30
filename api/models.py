@@ -33,6 +33,9 @@ class Payment(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     amount = models.IntegerField()
 
+    class Meta:
+        unique_together = ('interval', 'user')
+
 
 class NumericalParams(models.Model):
     key = models.CharField(max_length=100, primary_key=True)
