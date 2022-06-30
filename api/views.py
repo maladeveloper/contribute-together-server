@@ -178,13 +178,21 @@ def total_income_by_interval(request):
 
 
 @api_view(['GET'])
-def total_tax_by_interval(request):
-    return_dict, all_intervals = {}, Interval.objects.all()
+def total_payment_by_interval(request):
+    return_arr, all_intervals = [], Interval.objects.all()
     for i_o in all_intervals:
-        sd, ed = i_o.start_date, i_o.end_date
-        key = str(sd) + '_' + str(ed)
-        return_dict[key] = get_tax_dict(i_o.id)
-    return Response(return_dict)
+        interval_dict = {}
+        interval_dict['start_date'] = str(i_o.start_date)
+        interval_dict['end_date'] = str(i_o.end_date)
+        for user in User.objects.all():
+            try:
+                interval_dict[user.id] = Payment.objects.get(interval__id=i_o.id, user__id=user.id).amount
+            except Payment.DoesNotExist:
+                interval_dict[user.id] = 0
+
+        return_arr.append(interval_dict)
+
+    return Response(return_arr)
 
 
 # DELETE

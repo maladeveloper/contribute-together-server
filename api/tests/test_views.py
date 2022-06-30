@@ -360,23 +360,24 @@ class TotalIncome(TestCase):
 class TotalPaid(TestCase):
 
     def create_models(self):
-        interval = Interval.objects.create(start_date='2021-09-06', end_date='2021-09-19')
+        interval0 = Interval.objects.create(start_date='2021-09-06', end_date='2021-09-19')
+        interval1 = Interval.objects.create(start_date='2022-01-24', end_date='2021-09-19')
 
         user0 = User.objects.create(id='TEST000', name='Test0')
         user1 = User.objects.create(id='TEST001', name='Test1')
         user2 = User.objects.create(id='TEST002', name='Test2')
 
-        Payment.objects.create(user_id=user0.id, interval_id=interval.id, amount=10)
-        Payment.objects.create(user_id=user0.id, interval_id=interval.id, amount=20)
-        Payment.objects.create(user_id=user1.id, interval_id=interval.id, amount=30)
-        Payment.objects.create(user_id=user1.id, interval_id=interval.id, amount=40)
-        Payment.objects.create(user_id=user2.id, interval_id=interval.id, amount=50)
-        Payment.objects.create(user_id=user2.id, interval_id=interval.id, amount=60)
+        Payment.objects.create(user_id=user0.id, interval_id=interval0.id, amount=10)
+        Payment.objects.create(user_id=user1.id, interval_id=interval0.id, amount=20)
+        Payment.objects.create(user_id=user2.id, interval_id=interval0.id, amount=30)
+        Payment.objects.create(user_id=user0.id, interval_id=interval1.id, amount=40)
+        Payment.objects.create(user_id=user1.id, interval_id=interval1.id, amount=50)
+        Payment.objects.create(user_id=user2.id, interval_id=interval1.id, amount=60)
 
     def test_total_paid(self):
         self.create_models()
         response = client.get('/api/metrics/total-paid', follow=True)
-        self.assertEqual(response.data, {'TEST000': 30, 'TEST001': 70, 'TEST002': 110})
+        self.assertEqual(response.data, {'TEST000': 50, 'TEST001': 70, 'TEST002': 90})
 
 
 class TotalIncomeByInterval(TotalIncome):
@@ -391,15 +392,25 @@ class TotalIncomeByInterval(TotalIncome):
         })
 
 
-class TotalTaxByInterval(TotalIncome):
-    def test_total_tax_by_interval(self):
+class TotalPaymentByInterval(TotalPaid):
+    def test_total_payment_by_interval(self):
         self.create_models()
-        response = client.get('/api/metrics/total-tax-by-interval', follow=True)
+        response = client.get('/api/metrics/total-payment-by-interval', follow=True)
 
-        self.assertEqual(response.data, {
-            '2021-10-04_2021-10-17': {'TEST000': 68, 'TEST001': 121, 'TEST002': 912},
-            '2021-09-20_2021-10-03': {'TEST000': 96, 'TEST001': 138, 'TEST002': 865}
-        })
+        self.assertEqual(response.data, [
+            {'start_date': '2021-09-06', 'end_date': '2021-09-19', 'TEST000': 10, 'TEST001': 20, 'TEST002': 30},
+            {'start_date': '2022-01-24', 'end_date': '2021-09-19', 'TEST000': 40, 'TEST001': 50, 'TEST002': 60}
+        ])
+
+    def test_total_payment_by_interval_missing_interval_payment(self):
+        self.create_models()
+        Payment.objects.filter(user__id='TEST000').delete()
+        response = client.get('/api/metrics/total-payment-by-interval', follow=True)
+
+        self.assertEqual(response.data, [
+            {'start_date': '2021-09-06', 'end_date': '2021-09-19', 'TEST000': 0, 'TEST001': 20, 'TEST002': 30},
+            {'start_date': '2022-01-24', 'end_date': '2021-09-19', 'TEST000': 0, 'TEST001': 50, 'TEST002': 60}
+        ])
 
 
 # DELETE
