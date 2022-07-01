@@ -104,6 +104,7 @@ def payment(request, interval):
 def tax(request, interval):
     """ GET the tax due for a specific interval """
     if not has_all_income_submitted(interval):
+        submit_income_as_payment(interval, {}, all_income_submitted=False)
         return Response({}, status=status.HTTP_403_FORBIDDEN)
 
     tax_dict = get_tax_dict(interval)

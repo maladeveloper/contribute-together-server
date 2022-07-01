@@ -74,9 +74,10 @@ def has_all_income_submitted(interval_id):
     return True
 
 
-def submit_income_as_payment(interval_id, tax_dict):
+def submit_income_as_payment(interval_id, tax_dict, all_income_submitted=True):
     # Must delete old payments that were calculated already
     Payment.objects.filter(interval__id=interval_id).delete()
 
-    for user_id, tax_amount in tax_dict.items():
-        Payment.objects.create(user_id=user_id, interval_id=interval_id, amount=tax_amount)
+    if all_income_submitted:
+        for user_id, tax_amount in tax_dict.items():
+            Payment.objects.create(user_id=user_id, interval_id=interval_id, amount=tax_amount)
