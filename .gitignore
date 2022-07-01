@@ -3,3 +3,4 @@ db_credentials.py
 __pycache__/
 enviro/
 env/
+*.csv
